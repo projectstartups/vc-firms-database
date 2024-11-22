@@ -4,5 +4,4 @@ baseurl: "/vc-firms-database"
 url: "https://projectstartups.github.io"
 permalink: /:year/:month/:day/:title/
 
-
 theme: jekyll-theme-minima  # You can also use 'jekyll-theme-cayman' or any other theme
