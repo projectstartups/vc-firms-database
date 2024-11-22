@@ -1,1 +1,6 @@
-theme: minima
+title: VC Firms Directory
+description: A directory of venture capital firms.
+baseurl: ""  # Keep this empty for the root folder
+url: "https://projectstartups.github.io/vc-firms-database/"  # Replace with your GitHub Pages URL
+
+theme: jekyll-theme-minima  # You can also use 'jekyll-theme-cayman' or any other theme
