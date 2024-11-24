@@ -3,25 +3,91 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Details about {{ page.title }} - a venture capital firm.">
   <title>{{ page.title }}</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    header {
+      background-color: #0047AB;
+      color: #fff;
+      padding: 1em 1.5em;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+    header p {
+      margin: 0.5em 0 0;
+      font-size: 1rem;
+    }
+    main {
+      max-width: 800px;
+      margin: 2em auto;
+      padding: 1.5em;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    main p {
+      margin: 0.5em 0;
+    }
+    main a {
+      color: #0047AB;
+      text-decoration: none;
+    }
+    main a:hover {
+      text-decoration: underline;
+    }
+    footer {
+      text-align: center;
+      padding: 1em;
+      background: #0047AB;
+      color: #fff;
+      margin-top: 2em;
+    }
+  </style>
 </head>
 <body>
   <header>
     <h1>{{ page.title }}</h1>
+    {% if page.description %}
     <p>{{ page.description }}</p>
+    {% endif %}
   </header>
 
   <main>
-    <p><strong>Website:</strong> <a href="{{ page.website }}" target="_blank">{{ page.website }}</a></p>
-    <p><strong>LinkedIn:</strong> <a href="{{ page.linkedin }}" target="_blank">{{ page.linkedin }}</a></p>
+    <p><strong>Website:</strong> <a href="{{ page.website }}" target="_blank" rel="noopener">{{ page.website }}</a></p>
+    {% if page.linkedin %}
+    <p><strong>LinkedIn:</strong> <a href="{{ page.linkedin }}" target="_blank" rel="noopener">{{ page.linkedin }}</a></p>
+    {% endif %}
+    {% if page.twitter %}
+    <p><strong>Twitter:</strong> <a href="{{ page.twitter }}" target="_blank" rel="noopener">{{ page.twitter }}</a></p>
+    {% endif %}
+    {% if page.offices %}
     <p><strong>Offices:</strong> {{ page.offices }}</p>
-    <p><strong>Stages:</strong> {{ page.stages }}</p>
-    <p><strong>Portfolio:</strong> {{ page.portfolio }}</p>
+    {% endif %}
+    {% if page.stages %}
+    <p><strong>Investment Stages:</strong> {{ page.stages }}</p>
+    {% endif %}
+    {% if page.portfolio %}
+    <p><strong>Portfolio:</strong> <a href="{{ page.portfolio }}" target="_blank" rel="noopener">{{ page.portfolio }}</a></p>
+    {% endif %}
+    {% if page.markets %}
     <p><strong>Markets:</strong> {{ page.markets }}</p>
+    {% endif %}
   </main>
 
   <footer>
-    <p>VC Firms Directory | Powered by Jekyll</p>
+    <p>&copy; {{ site.time | date: "%Y" }} VC Firms Directory | Powered by Jekyll</p>
   </footer>
 </body>
 </html>
+
