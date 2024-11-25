@@ -5,19 +5,7 @@ title: VC Firms
 
 <h1>Welcome to the VC Firms Directory</h1>
 
-<p>Explore our curated list of VC firms. Click on a firm's name to view its details.</p>
-
-<h2>VC Firms by Stages</h2>
-
-{% assign stages = site.posts | group_by: "stages" %}
-{% for stage in stages %}
-  <h3>{{ stage.name }}</h3>
-  <ul>
-    {% for post in stage.items %}
-      <li><a href="{{ post.url }}">{{ post.title }}</a></li>
-    {% endfor %}
-  </ul>
-{% endfor %}
+<p>Explore our curated list of VC firms. Click on a firm's name to view its details.</p
 
 <h2>All VC Firms</h2>
 <ul>
