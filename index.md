@@ -21,6 +21,12 @@ title: VC Firms
 
 <script src="https://cdn.jsdelivr.net/npm/fuse.js"></script>
 <script>
+<input type="text" id="search" placeholder="Search VC Firms...">
+<ul id="results"></ul>
+<script>
+  fetch('/search.json')
+    .then(response => response.json())
+    .then(data => {  
   // Fetch and use JSON for search
   fetch('/search.json')
     .then(response => response.json())
