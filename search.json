@@ -1,0 +1,11 @@
+[
+  {% for post in site.posts %}
+  {
+    "title": "{{ post.title | escape }}",
+    "url": "{{ post.url | relative_url }}",
+    "offices": "{{ post.offices | escape }}",
+    "stages": "{{ post.stages | escape }}",
+    "markets": "{{ post.markets | escape }}"
+  }{% unless forloop.last %},{% endunless %}
+  {% endfor %}
+]
