@@ -30,18 +30,31 @@ this.processDocument = function (html, url, headers, status, jQuery) {
 
 
 
-    // Links - Improve link text extraction and remove unnecessary ones
-    const links = [];
-    $html.find('a').each(function () {
-        const link = app.makeLink(url, $(this).attr('href'));
-        const linkText = $(this).text().trim();
-        if (link && linkText && linkText !== 'No Text') {
-            links.push({ text: linkText || 'No Text', url: link });
-        }
-    });
+// Links - Extract relevant pages and social media links
+const links = [];
+$html.find('a').each(function () {
+    const link = app.makeLink(url, $(this).attr('href'));
+    const linkText = $(this).text().trim();
 
-    // Deduplicate Links
-    object.links = links.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
+    // Define patterns for relevant URLs, text, and social media
+    const relevantTextPatterns = /(about|team|portfolio|investments|companies|news)/i;
+    const relevantUrlPatterns = /(about|team|portfolio|investments|companies|news)/i;
+    const socialMediaPatterns = /(linkedin\.com|twitter\.com|facebook\.com|instagram\.com|youtube\.com)/i;
+
+    // Check if the link and text are relevant or belong to social media
+    if (
+        link &&
+        (relevantTextPatterns.test(linkText) ||
+         relevantUrlPatterns.test(link) ||
+         socialMediaPatterns.test(link))
+    ) {
+        links.push({ text: linkText || 'No Text', url: link });
+    }
+});
+
+// Deduplicate Links
+object.links = links.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
+
 
     return JSON.stringify(object);
 };
