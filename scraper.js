@@ -37,14 +37,14 @@ $html.find('a').each(function () {
     const linkText = $(this).text().trim();
 
     // Define patterns for relevant URLs, text, and social media
-    const relevantTextPatterns = /(about|team|portfolio|investments|companies|news)/i;
+    //const relevantTextPatterns = /(about|team|portfolio|investments|companies|news)/i;
     const relevantUrlPatterns = /(about|team|portfolio|investments|companies|news)/i;
     const socialMediaPatterns = /(linkedin\.com|twitter\.com|facebook\.com|instagram\.com|youtube\.com)/i;
 
     // Check if the link and text are relevant or belong to social media
     if (
         link &&
-        (relevantTextPatterns.test(linkText) ||
+        (//relevantTextPatterns.test(linkText) ||
          relevantUrlPatterns.test(link) ||
          socialMediaPatterns.test(link))
     ) {
