@@ -1,6 +1,6 @@
 const API_TOKEN = 'imk8ljyds81hzobrnlc4cq4ccpfj2jtg'; // Replace with your real API token
 const URL_LIST_NAME = 'TechEUURLs';
-const CRAWL_NAME = 'EEMMSS';
+const CRAWL_NAME = 'EEddeeeee';
 const APP_NAME = 'TechEU'; // Adjust if necessary
 const MAX_ATTEMPTS = 20; // Maximum attempts to check crawl status
 const WAIT_TIME = 60000; // 1 minute in milliseconds
@@ -180,13 +180,11 @@ function fetchAndPopulateResults() {
 
       parsedResultData.forEach(item => {
         try {
-          const parsedItem = JSON.parse(item.result); // Parse the `result` field
+          const parsedItem = JSON.parse(JSON.parse(item.result)); // Double parse the `result` field
           const url = parsedItem.url || null;
-          const dateCrawled = parsedItem.dateCrawled || "No date";
-          const content = parsedItem.content || "No content";
 
           if (url) {
-            urlToDataMap[url] = { dateCrawled, content };
+            urlToDataMap[url] = { result: item.result }; // Store the full `result` field
           } else {
             Logger.log("URL missing in parsed result item: " + JSON.stringify(parsedItem));
           }
@@ -207,26 +205,14 @@ function fetchAndPopulateResults() {
   inputURLs.forEach((url, index) => {
     const row = index + 2; // Adjust for header row
     const data = urlToDataMap[url] || {};
-    const dateCrawled = data.dateCrawled || "No date";
-    const content = data.content || "No content";
+    const result = data.result || "No result";
 
-    Logger.log(`Writing data for URL: ${url} (Date: ${dateCrawled}, Content: ${content})`);
+    Logger.log(`Writing data for URL: ${url} (Result: ${result})`);
 
     sheet.getRange(row, 3).setValue(url); // Column C: URL
-    sheet.getRange(row, 4).setValue(dateCrawled); // Column D: Date Crawled
-    sheet.getRange(row, 5).setValue(content); // Column E: Content
+    sheet.getRange(row, 4).setValue(result); // Column D: Full Result
   });
 
   Logger.log("Results written to sheet.");
 }
-
-
-
-
-
-
-
-
-
-
 
