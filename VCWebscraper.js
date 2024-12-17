@@ -1,63 +1,69 @@
 var EightyApp = function() {
     // Extracts structured data from the page HTML
  
+ 
 this.processDocument = function (html, url, headers, status, jQuery) {
     const app = this;
     const $ = jQuery;
     const $html = app.parseHtml(html, $);
     const object = {};
 
+    // Track the original input URL and the final redirected URL
+    object.inputUrl = url; // Original input URL
+    object.finalUrl = headers['Location'] || url; // Redirected URL or original URL if no redirection
+
     // Crawl date
     object.dateCrawled = app.formatDate(Date.now());
 
-    // Title - Use find() to ensure it gets the title tag
+    // Extract the title from the page
     const title = $html.find('title').text().trim();
-    object.title = title ? title : 'No Title Available';
+    object.title = title || 'No Title Available';
 
-    // Meta Tags (only description needed)
+    // Extract meta description tag
     object.meta = {
         description: $html.find('meta[name="description"]').attr('content') || 'No Description Available'
     };
 
-    // Clean Lossy HTML
+    // Generate lossyHTML by cleaning up the raw HTML content
     let cleanedHTML = html
-        .replace(/<script[\s\S]*?<\/script>/gi, '') // Remove scripts
-        .replace(/<style[\s\S]*?<\/style>/gi, '') // Remove styles
-        .replace(/<[\s\S]*?>/g, '') // Remove HTML tags
-        .replace(/[\t\n\r]+/g, ' ') // Remove newlines/tabs
-        .trim();
+    .replace(/<script[\s\S]*?<\/script>/gi, '')  // Remove script tags and content
+    .replace(/<style[\s\S]*?<\/style>/gi, '')  // Remove style tags and content
+    .replace(/<!--[\s\S]*?-->/g, '')  // Remove comments
+    .replace(/<[^>]+>/g, ' ')  // Replace HTML tags with spaces
+    .replace(/\s{2,}/g, ' ')  // Replace multiple spaces with a single space
+    .replace(/^\s+|\s+$/g, '')  // Trim leading and trailing spaces
+    .replace(/\s+/g, ' ')  // Replace multiple spaces or newlines with a single space
+    .trim();  // Final cleanup to ensure no trailing spaces
+
     object.lossyHTML = cleanedHTML;
 
 
+    // Extract relevant links (internal pages and social media)
+    const links = [];
+    $html.find('a').each(function () {
+        const link = app.makeLink(url, $(this).attr('href')); // Resolve relative links
+        const linkText = $(this).text().trim(); // Get the link text
 
-// Links - Extract relevant pages and social media links
-const links = [];
-$html.find('a').each(function () {
-    const link = app.makeLink(url, $(this).attr('href'));
-    const linkText = $(this).text().trim();
+        // Patterns for relevant URLs and social media
+        const relevantUrlPatterns = /(about|team|portfolio|investments|companies|news)/i;
+        const socialMediaPatterns = /(linkedin\.com|twitter\.com|facebook\.com|instagram\.com|youtube\.com)/i;
 
-    // Define patterns for relevant URLs, text, and social media
-    //const relevantTextPatterns = /(about|team|portfolio|investments|companies|news)/i;
-    const relevantUrlPatterns = /(about|team|portfolio|investments|companies|news)/i;
-    const socialMediaPatterns = /(linkedin\.com|twitter\.com|facebook\.com|instagram\.com|youtube\.com)/i;
+        // Check if the link matches relevant patterns or is a social media link
+        if (
+            link &&
+            (relevantUrlPatterns.test(link) || socialMediaPatterns.test(link))
+        ) {
+            links.push({ text: linkText || 'No Text', url: link });
+        }
+    });
 
-    // Check if the link and text are relevant or belong to social media
-    if (
-        link &&
-        (//relevantTextPatterns.test(linkText) ||
-         relevantUrlPatterns.test(link) ||
-         socialMediaPatterns.test(link))
-    ) {
-        links.push({ text: linkText || 'No Text', url: link });
-    }
-});
-
-// Deduplicate Links
-object.links = links.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
-
+    // Deduplicate links to avoid repetitions
+    object.links = links.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
 
     return JSON.stringify(object);
 };
+
+
 
  
  
