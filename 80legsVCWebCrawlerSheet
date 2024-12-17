@@ -1,0 +1,143 @@
+const API_TOKEN = 'imk8ljyds81hzobrnlc4cq4ccpfj2jtg'; // Replace with your real API token
+const URL_LIST_NAME = 'VCfirms';
+const CRAWL_NAME = 'VCWebsiteCrawl';
+const APP_NAME = 'WebPageBodyContent'; // Adjust for VC crawling
+const MAX_ATTEMPTS = 20;
+const WAIT_TIME = 60000; // 1 minute in milliseconds
+
+function initiateCrawl() {
+  try {
+    createURLList();
+    startCrawl();
+    setupCrawlTrigger();
+  } catch (error) {
+    Logger.log("Error during the crawl process: " + error.message);
+  }
+}
+
+function createURLList() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const urls = sheet.getRange("B2:B" + sheet.getLastRow()).getValues().flat().filter(url => url);
+
+  if (urls.length === 0) {
+    throw new Error("No URLs found in Column B.");
+  }
+
+  const url = `https://api.80legs.com/v2/urllists/${URL_LIST_NAME}`;
+  const options = {
+    method: 'put',
+    contentType: 'application/json',
+    payload: JSON.stringify(urls),
+    headers: {
+      'Authorization': 'Basic ' + Utilities.base64Encode(API_TOKEN + ':')
+    },
+    muteHttpExceptions: true
+  };
+
+  const response = UrlFetchApp.fetch(url, options);
+  if (response.getResponseCode() === 403) {
+    throw new Error("Authorization failed. Verify your API token and user account.");
+  }
+
+  Logger.log("URL List created successfully.");
+}
+
+function startCrawl() {
+  const url = `https://api.80legs.com/v2/crawls/${CRAWL_NAME}`;
+  const options = {
+    method: 'put',
+    contentType: 'application/json',
+    payload: JSON.stringify({
+      urllist: URL_LIST_NAME,
+      app: APP_NAME,
+      max_depth: 1,
+      max_urls: 1000
+    }),
+    headers: {
+      'Authorization': 'Basic ' + Utilities.base64Encode(API_TOKEN + ':')
+    },
+    muteHttpExceptions: true
+  };
+
+  const response = UrlFetchApp.fetch(url, options);
+  if (response.getResponseCode() === 403) {
+    throw new Error("Crawl initiation failed. Verify your API token or crawl parameters.");
+  }
+
+  Logger.log("Crawl started successfully.");
+}
+
+function setupCrawlTrigger() {
+  ScriptApp.newTrigger('checkCrawlStatusAndPopulateResults')
+    .timeBased()
+    .everyHours(1)
+    .create();
+  Logger.log("Time-driven trigger set up to check crawl status every hour.");
+}
+
+function checkCrawlStatusAndPopulateResults() {
+  const url = `https://api.80legs.com/v2/crawls/${CRAWL_NAME}`;
+  const options = {
+    method: 'get',
+    headers: {
+      'Authorization': 'Basic ' + Utilities.base64Encode(API_TOKEN + ':')
+    },
+    muteHttpExceptions: true
+  };
+
+  const response = UrlFetchApp.fetch(url, options);
+  const data = JSON.parse(response.getContentText());
+
+  if (data.status === 'COMPLETED') {
+    Logger.log("Crawl completed. Fetching results.");
+    fetchAndPopulateResults();
+    removeTrigger(); // Remove trigger after crawl completion
+  } else {
+    Logger.log("Crawl still running. Waiting for the next scheduled check.");
+  }
+}
+
+function fetchAndPopulateResults() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const resultURLAPI = `https://api.80legs.com/v2/results/${CRAWL_NAME}`;
+  const options = {
+    method: 'get',
+    headers: {
+      'Authorization': 'Basic ' + Utilities.base64Encode(API_TOKEN + ':')
+    },
+    muteHttpExceptions: true
+  };
+
+  const response = UrlFetchApp.fetch(resultURLAPI, options);
+  const resultURLs = JSON.parse(response.getContentText());
+
+  resultURLs.forEach(resultFileURL => {
+    const resultResponse = UrlFetchApp.fetch(resultFileURL, { muteHttpExceptions: true });
+    const resultData = JSON.parse(resultResponse.getContentText());
+
+    resultData.forEach(item => {
+      const parsedResult = JSON.parse(JSON.parse(item.result)); // Double parse the `result` field
+      const { inputUrl, finalUrl, title, meta, lossyHTML, links } = parsedResult;
+
+      const lastRow = sheet.getLastRow() + 1; // Find the next empty row
+      sheet.getRange(lastRow, 1).setValue(inputUrl); // Column A: Input URL
+      sheet.getRange(lastRow, 2).setValue(finalUrl); // Column B: Final URL
+      sheet.getRange(lastRow, 3).setValue(title); // Column C: Title
+      sheet.getRange(lastRow, 4).setValue(meta.description); // Column D: Meta Description
+      sheet.getRange(lastRow, 5).setValue(lossyHTML); // Column E: Lossy HTML
+      sheet.getRange(lastRow, 6).setValue(JSON.stringify(links)); // Column F: Links (as JSON)
+    });
+  });
+
+  Logger.log("Results written to sheet.");
+}
+
+function removeTrigger() {
+  const triggers = ScriptApp.getProjectTriggers();
+  triggers.forEach(trigger => {
+    if (trigger.getHandlerFunction() === 'checkCrawlStatusAndPopulateResults') {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  });
+  Logger.log("Time-driven trigger removed.");
+}
