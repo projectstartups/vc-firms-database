@@ -120,12 +120,12 @@ function fetchAndPopulateResults() {
       const { inputUrl, finalUrl, title, meta, lossyHTML, links } = parsedResult;
 
       const lastRow = sheet.getLastRow() + 1; // Find the next empty row
-      sheet.getRange(lastRow, 1).setValue(inputUrl); // Column A: Input URL
-      sheet.getRange(lastRow, 2).setValue(finalUrl); // Column B: Final URL
-      sheet.getRange(lastRow, 3).setValue(title); // Column C: Title
-      sheet.getRange(lastRow, 4).setValue(meta.description); // Column D: Meta Description
-      sheet.getRange(lastRow, 5).setValue(lossyHTML); // Column E: Lossy HTML
-      sheet.getRange(lastRow, 6).setValue(JSON.stringify(links)); // Column F: Links (as JSON)
+      sheet.getRange(lastRow, 3).setValue(inputUrl); // Column C: Input URL
+      sheet.getRange(lastRow, 4).setValue(finalUrl); // Column D: Final URL
+      sheet.getRange(lastRow, 5).setValue(title); // Column E: Title
+      sheet.getRange(lastRow, 6).setValue(meta.description); // Column F: Meta Description
+      sheet.getRange(lastRow, 7).setValue(lossyHTML); // Column G: Lossy HTML
+      sheet.getRange(lastRow, 8).setValue(JSON.stringify(links)); // Column H: Links (as JSON)
     });
   });
 
