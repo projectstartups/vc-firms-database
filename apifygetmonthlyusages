@@ -1,0 +1,49 @@
+function getMonthlyUsage() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const startRow = 2; // Start reading from row 2
+  const lastRow = sheet.getLastRow(); // Find the last row with data in Column A
+  const apiUrlBase = "https://api.apify.com/v2/users/me/usage/monthly?token=";
+
+  for (let i = startRow; i <= lastRow; i++) {
+    const apiToken = sheet.getRange(i, 1).getValue(); // Read token from Column A
+    if (!apiToken) {
+      Logger.log(`Row ${i}: No token provided.`);
+      sheet.getRange(i, 3).setValue("Error: No token provided");
+      continue; // Skip empty rows
+    }
+
+    try {
+      // Fetch data from API
+      const response = UrlFetchApp.fetch(apiUrlBase + apiToken);
+      const jsonData = JSON.parse(response.getContentText());
+
+      // Log full response for debugging
+      Logger.log(`Row ${i}: Full API Response - ${JSON.stringify(jsonData)}`);
+
+      // Check if the expected data exists
+      const usageCycle = jsonData.data && jsonData.data.usageCycle;
+      const totalUsageCreditsUsdAfterVolumeDiscount = jsonData.data && jsonData.data.totalUsageCreditsUsdAfterVolumeDiscount;
+
+      // If data exists, extract and log it
+      if (usageCycle && totalUsageCreditsUsdAfterVolumeDiscount !== undefined) {
+        const startAt = usageCycle.startAt || "No start date";
+        const endAt = usageCycle.endAt || "No end date";
+
+        // Log and write usage data to the respective columns
+        Logger.log(`Row ${i}: StartAt - ${startAt}, EndAt - ${endAt}, Usage USD (After Volume Discount) - ${totalUsageCreditsUsdAfterVolumeDiscount}`);
+        sheet.getRange(i, 2).setValue(startAt);  // Column B for startAt
+        sheet.getRange(i, 3).setValue(endAt);    // Column C for endAt
+        sheet.getRange(i, 4).setValue(totalUsageCreditsUsdAfterVolumeDiscount); // Column D for totalUsageCreditsUsdAfterVolumeDiscount
+      } else {
+        // Log and display a message if the data is missing
+        Logger.log(`Row ${i}: Missing usage cycle or totalUsageCreditsUsdAfterVolumeDiscount.`);
+        sheet.getRange(i, 2).setValue("Error: No usage data available");
+        sheet.getRange(i, 3).setValue("Error: No usage data available");
+        sheet.getRange(i, 4).setValue("Error: No usage data available");
+      }
+    } catch (error) {
+      Logger.log(`Row ${i}: Error - ${error.message}`);
+      sheet.getRange(i, 3).setValue(`Error: ${error.message}`); // Log errors in Column C
+    }
+  }
+}
